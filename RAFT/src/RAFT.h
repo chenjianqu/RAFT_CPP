@@ -38,15 +38,15 @@ public:
     RAFT();
 
     vector<Tensor> forward(Tensor& tensor0, Tensor& tensor1);
-
+    vector<Tensor> forward_test();
 
     tuple<Tensor,Tensor> forward_fnet(Tensor &tensor0,Tensor &tensor1);
     tuple<Tensor,Tensor> forward_fnet_jit(Tensor &tensor0,Tensor &tensor1);
     tuple<Tensor,Tensor> forward_cnet(Tensor &tensor1);
     tuple<Tensor,Tensor,Tensor> forward_update(Tensor &net,Tensor &inp,Tensor &corr,Tensor &flow);
     static tuple<Tensor,Tensor> initialize_flow(Tensor &tensor1);
-    static vector<Tensor> compute_corr_pyramid(Tensor &tensor0, Tensor &tensor1);
-    static Tensor index_corr_volume(Tensor &tensor,vector<Tensor> &pyramid);
+    void compute_corr_pyramid(Tensor &tensor0, Tensor &tensor1);
+    Tensor index_corr_volume(Tensor &tensor);
 
 private:
 
@@ -66,8 +66,10 @@ private:
     std::shared_ptr<torch::jit::Module> cnet_jit;
     std::shared_ptr<torch::jit::Module> update_jit;
 
-
     cudaStream_t stream{};
+
+    Tensor last_flow;
+    vector<Tensor> corr_pyramid; //相关性金字塔
 };
 
 

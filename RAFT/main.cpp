@@ -47,6 +47,8 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+    Tensor flow;
+
     for(int index=1; index <1000;++index)
     {
         img1 = ReadOneKitti(index);
@@ -62,11 +64,12 @@ int main(int argc, char **argv) {
         debug_s("process:{} ms",ticToc.toc_then_tic());
 
         vector<Tensor> prediction = raft->forward(tensor0,tensor1);
+        //vector<Tensor> prediction = raft->forward_test();
 
         debug_s("prediction:{} ms",ticToc.toc_then_tic());
 
         torch::Tensor output = (tensor1.squeeze()+1.)/2.;
-        Tensor flow = prediction.back();//[1,2,h,w]
+        flow = prediction.back();//[1,2,h,w]
         flow = flow.squeeze();
 
         string msg;
@@ -89,7 +92,7 @@ int main(int argc, char **argv) {
         //cv::Mat flow_show = visual_flow_image(flow);
 
         cv::imshow("flow",flow_show);
-        if(auto order=(cv::waitKey(0) & 0xFF); order == 'q')
+        if(auto order=(cv::waitKey(1) & 0xFF); order == 'q')
             break;
         else if(order==' ')
             cv::waitKey(0);

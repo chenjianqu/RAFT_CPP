@@ -70,21 +70,17 @@ Tensor make_colorwheel(){
  * @return [H,W,3]的张量，值[0,255],type=UInt8
  */
 Tensor flow_uv_to_colors(Tensor &u,Tensor &v){
-    debug_s("flow_uv_to_colors ");
-
     static Tensor colorwheel = make_colorwheel();//[55,3]
-
-    debug_s("flow_uv_to_colors colorwheel:{}",dims2str(colorwheel.sizes()));
-
     static auto opt_flow_img = torch::TensorOptions(torch::kCUDA).dtype(torch::kUInt8);
+    //debug_s("flow_uv_to_colors colorwheel:{}",dims2str(colorwheel.sizes()));
     Tensor flow_img = torch::zeros({u.sizes()[0],u.sizes()[1],3},opt_flow_img);
-    debug_s("flow_uv_to_colors flow_img:{}",dims2str(flow_img.sizes()));
+    //debug_s("flow_uv_to_colors flow_img:{}",dims2str(flow_img.sizes()));
 
     int ncols = colorwheel.sizes()[0];//=55
 
     Tensor rad = torch::sqrt(torch::square(u)+torch::square(v));//[376, 1232]
     Tensor a=torch::atan2(-v,-u)/M_PI; //[376, 1232]
-    debug_s("flow_uv_to_colors a:{}",dims2str(a.sizes()));
+    //debug_s("flow_uv_to_colors a:{}",dims2str(a.sizes()));
 
     Tensor fk = (a+1)/2*(ncols-1);//[376, 1232]
     Tensor k0 = torch::floor(fk).to(torch::kLong);//[376, 1232]
@@ -99,13 +95,10 @@ Tensor flow_uv_to_colors(Tensor &u,Tensor &v){
 
         Tensor col0 = tmp.index({k0}) / 255.;//[376, 1232]
         Tensor col1 = tmp.index({k1}) / 255.;
-        debug_s("flow_uv_to_colors iter col0:{}",dims2str(col0.sizes()));
-
+        //debug_s("flow_uv_to_colors iter col0:{}",dims2str(col0.sizes()));
         Tensor col = (1-f)*col0 + f*col1; //[376, 1232]
         Tensor idx = (rad<=1);
-        debug_s("flow_uv_to_colors iter idx:{}",dims2str(idx.sizes()));
-
-
+        //debug_s("flow_uv_to_colors iter idx:{}",dims2str(idx.sizes()));
         col.index({idx}) = 1-rad.index({idx}) * (1-col.index({idx}));
         col.index({~idx}) = col.index({~idx}) * 0.75;
         int ch_idx = 2-i;
@@ -130,9 +123,7 @@ Tensor flow_to_image(torch::Tensor &flow_uv)
     Tensor rad = torch::sqrt(torch::square(u)+torch::square(v));
     float rad_max = torch::max(rad).item().toFloat();
     float epsilon = 1e-5;
-
-    debug_s("flow_to_image rad_max:{}",rad_max);
-
+    //debug_s("flow_to_image rad_max:{}",rad_max);
     u /= (rad_max+epsilon);
     v /= (rad_max+epsilon);
 
@@ -151,11 +142,8 @@ cv::Mat visual_flow_image(torch::Tensor &img,torch::Tensor &flow_uv)
     //chw -> hwc
     Tensor image = img.permute({1,2,0});
     image = (image*255).to(torch::kUInt8);
-
     torch::Tensor flow = flow_to_image(flow_uv);
-
     torch::Tensor show_tensor = (flow*0.5 + image*0.5).to(torch::kUInt8);
-
     show_tensor = show_tensor.to(torch::kCPU);
     cv::Mat img_show = cv::Mat(img.sizes()[1],img.sizes()[2],CV_8UC3,show_tensor.data_ptr()).clone();
     return img_show;
