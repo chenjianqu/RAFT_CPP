@@ -1,6 +1,9 @@
 # RAFT_CPP
 
 
+## Attention/注意
+**There are some bug here,output the wrong result**  
+**代码存在bug，估计出来的光流值不准确，解决中**
 
 ## Quick Start
 ### 0.Export RAFT onnx model
@@ -69,5 +72,7 @@ torch.onnx.export(model,(net, inp, corr, flow),"kitti_update.onnx")
 ```
 
 ```
+
+
 
 
