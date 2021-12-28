@@ -152,6 +152,7 @@ void RAFT::compute_corr_pyramid(Tensor &tensor0, Tensor &tensor1) {
     const int h = size[2];
     const int w = size[3];
     const int num_level = 4;
+    corr_pyramid.clear();
 
     ///计算corr张量
     Tensor t0_view = tensor0.view({batch,dim,h*w});//[1, 256, 47*154]
@@ -248,10 +249,10 @@ Tensor RAFT::index_corr_volume(Tensor &tensor){
  */
 vector<Tensor> RAFT::forward(Tensor& tensor0, Tensor& tensor1) {
     TicToc tt;
+    static auto gpu=torch::TensorOptions(torch::kCUDA).dtype(torch::kFloat);
     const int num_iter = 20;
 
     auto [fmat0,fmat1] = forward_fnet(tensor0,tensor1);//fmat0和fmat1:[1, 256, 47, 154]
-    //auto [fmat0,fmat1] = forward_fnet_jit(tensor0,tensor1);
     debug_s("forward_fnet:{} ms",tt.toc_then_tic());
 
     /**
@@ -263,7 +264,6 @@ vector<Tensor> RAFT::forward(Tensor& tensor0, Tensor& tensor1) {
     compute_corr_pyramid(fmat0,fmat1);
     debug_s("corr_pyramid:{} ms",tt.toc_then_tic());
     //for(auto &p : corr_pyramid) debug_s("corr_pyramid.shape:{}", dims2str(p.sizes()));
-
     auto [net,inp] = forward_cnet(tensor1);//net和inp:[1,128,47,154]
     debug_s("forward_cnet:{} ms",tt.toc_then_tic());
 
@@ -279,11 +279,6 @@ vector<Tensor> RAFT::forward(Tensor& tensor0, Tensor& tensor1) {
         debug_s("{}",i);
         auto corr = index_corr_volume(coords1);//[batch*h*w, 1, 9, 9]
         auto flow = coords1 - coords0;//[1,2,47,154]
-        /**
-         * net.size: [1, 128, 47, 154]
-           up_mask.size: [1, 576, 47, 154]
-           delta_flow.size: [1, 2, 47, 154]
-         */
         auto [net1,up_mask,delta_flow] = forward_update(net,inp,corr,flow);
         net = net1;
         coords1 = coords1 + delta_flow;
@@ -300,6 +295,7 @@ vector<Tensor> RAFT::forward(Tensor& tensor0, Tensor& tensor1) {
     }
     debug_s("iter all:{} ms",tt.toc_then_tic());
 
+    corr_pyramid.clear();
 
     return flow_prediction;
 }
