@@ -15,8 +15,8 @@ segmentor_log_path: "segmentor_log.txt"
 segmentor_log_level: "debug"
 segmentor_log_flush: "debug"
 
-#DATASET_DIR: "/media/chen/EC4A17F64A17BBF0/datasets/kitti/odometry/colors/07/image_2/"
-DATASET_DIR: "/home/chen/CLionProjects/RAFT_CPP/demo/kitti07/"
+DATASET_DIR: "/media/chen/EC4A17F64A17BBF0/datasets/kitti/odometry/colors/07/image_2/"
+#DATASET_DIR: "/home/chen/CLionProjects/RAFT_CPP/demo/kitti07/"
 WARN_UP_IMAGE_PATH: "/home/chen/CLionProjects/InstanceSegment/config/kitti.png"
 
 

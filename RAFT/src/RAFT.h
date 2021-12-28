@@ -41,7 +41,6 @@ public:
     vector<Tensor> forward_test();
 
     tuple<Tensor,Tensor> forward_fnet(Tensor &tensor0,Tensor &tensor1);
-    tuple<Tensor,Tensor> forward_fnet_jit(Tensor &tensor0,Tensor &tensor1);
     tuple<Tensor,Tensor> forward_cnet(Tensor &tensor1);
     tuple<Tensor,Tensor,Tensor> forward_update(Tensor &net,Tensor &inp,Tensor &corr,Tensor &flow);
     static tuple<Tensor,Tensor> initialize_flow(Tensor &tensor1);
@@ -61,10 +60,6 @@ private:
     std::unique_ptr<nvinfer1::IRuntime,InferDeleter> update_runtime;
     std::shared_ptr<nvinfer1::ICudaEngine> update_engine;
     std::unique_ptr<IExecutionContext, InferDeleter> update_context;
-
-    std::shared_ptr<torch::jit::Module> fnet_jit;
-    std::shared_ptr<torch::jit::Module> cnet_jit;
-    std::shared_ptr<torch::jit::Module> update_jit;
 
     cudaStream_t stream{};
 

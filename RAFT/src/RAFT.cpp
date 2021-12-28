@@ -65,8 +65,6 @@ RAFT::RAFT(){
     CreateModel(cnet_runtime,cnet_engine,cnet_context,Config::cnet_tensorrt_path);
     CreateModel(update_runtime,update_engine,update_context,Config::update_tensorrt_path);
 
-
-    fnet_jit =std::make_shared<torch::jit::Module>(torch::jit::load("/home/chen/CLionProjects/RAFT_CPP/weights/kitti_fnet.pt"));
 }
 
 tuple<Tensor, Tensor> RAFT::forward_fnet(Tensor &tensor0, Tensor &tensor1) {
@@ -89,11 +87,6 @@ tuple<Tensor, Tensor> RAFT::forward_fnet(Tensor &tensor0, Tensor &tensor1) {
     fnet_context->enqueue(1,buffer,stream, nullptr);
 
     return {fmat0.to(torch::kFloat),fmat1.to(torch::kFloat)};
-}
-
-tuple<Tensor, Tensor> RAFT::forward_fnet_jit(Tensor &tensor0, Tensor &tensor1) {
-    auto fmat = fnet_jit->forward({tensor0,tensor1}).toTuple();
-    return {fmat->elements()[0].toTensor(),fmat->elements()[1].toTensor()};
 }
 
 

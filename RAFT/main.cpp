@@ -9,7 +9,6 @@
 #include "src/Pipeline.h"
 #include "src/RAFT.h"
 #include "src/Visualization.h"
-#include "src/RAFT_Torch.h"
 
 
 
@@ -29,11 +28,9 @@ int main(int argc, char **argv) {
     string config_file = argv[1];
     fmt::print("config_file:{}\n",argv[1]);
     RAFT::Ptr raft;
-    RAFT_Torch::Ptr raft_torch;
     try{
         Config cfg(config_file);
         raft = std::make_unique<RAFT>();
-        raft_torch = std::make_unique<RAFT_Torch>();
     }
     catch(std::runtime_error &e){
         sgLogger->critical(e.what());
@@ -66,9 +63,8 @@ int main(int argc, char **argv) {
 
         debug_s("process:{} ms",ticToc.toc_then_tic());
 
-        //vector<Tensor> prediction = raft->forward(tensor0,tensor1);
+        vector<Tensor> prediction = raft->forward(tensor0,tensor1);
         //vector<Tensor> prediction = raft->forward_test();
-        vector<Tensor> prediction = raft_torch->forward(tensor0,tensor1);
 
         debug_s("prediction:{} ms",ticToc.toc_then_tic());
 
@@ -76,7 +72,7 @@ int main(int argc, char **argv) {
         flow = prediction.back();//[1,2,h,w]
         flow = flow.squeeze();
 
-        string msg;
+        /*string msg;
         int cnt=0;
         for(int i=0;i<flow.sizes()[1];++i){
             for(int j=0;j<flow.sizes()[2];++j){
@@ -89,7 +85,7 @@ int main(int argc, char **argv) {
                 }
             }
         }
-        debug_s(msg);
+        debug_s(msg);*/
 
 
         cv::Mat flow_show = visual_flow_image(output,flow);
