@@ -189,7 +189,7 @@ tuple<Tensor, Tensor> RAFT::initialize_flow(Tensor &tensor) {
     static auto opt = torch::TensorOptions(torch::kCUDA);
     auto coords_grid = [](int batch,int h,int w){
         auto coords_vector = torch::meshgrid({torch::arange(h,opt),torch::arange(w,opt)});//[h,w]
-        auto coords = torch::stack({coords_vector[0],coords_vector[1]},0).to(torch::kFloat);//[2,h,w]
+        auto coords = torch::stack({coords_vector[1],coords_vector[0]},0).to(torch::kFloat);//[2,h,w]
         return coords.unsqueeze(0).expand({batch,2,h,w});//(1,2,h,w)
     };
 
@@ -227,14 +227,14 @@ Tensor RAFT::index_corr_volume(Tensor &tensor){
 
     vector<Tensor> out_pyramid;
     for(int i=0;i<num_level;++i){
-        auto corr = corr_pyramid[i];//[7238,1,h,w]
+        auto corr = corr_pyramid[i];//层i的相关性张量，[7238,1,h,w]
+        //每个像素在该金字塔层搜索的范围
         auto delta = torch::stack(torch::meshgrid( //[9,9,2],  [2*r+1, 2*r+1,2]
-                {torch::linspace(-r,r,rr,gpu),
-                 torch::linspace(-r,r,rr,gpu)}),-1);
-
-        auto centroid_lvl = coords.reshape({batch*h*w,1,1,2}) / std::pow(2,i);//[batch*h*w,1,1,2]
+                {torch::linspace(-r,r,rr,gpu),torch::linspace(-r,r,rr,gpu)}),-1);
         auto delta_lvl = delta.view({1,rr,rr,2});//[1,9,9,2]
-        auto coords_lvl = centroid_lvl + delta_lvl;//[7238, 9, 9, 2]
+        //将坐标值缩放到层i的值
+        auto centroid_lvl = coords.reshape({batch*h*w,1,1,2}) / std::pow(2,i);//[batch*h*w,1,1,2]
+        auto coords_lvl = centroid_lvl + delta_lvl;//[7238, 9, 9, 2]，7238表示每个像素，9 9表示每个像素检索的范围，2表示xy值
         corr = bilinear_sampler(corr,coords_lvl);//[batch*h*w,1,9,9]
         corr = corr.view({batch,h,w,-1});//[batch,h,w,81]
         out_pyramid.push_back(corr);
