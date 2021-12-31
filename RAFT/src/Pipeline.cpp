@@ -37,8 +37,8 @@ torch::Tensor Pipeline::process(cv::Mat &img)
     debug_s("setInputTensorCuda hwc->chw:{} {} ms",dims2str(input_tensor.sizes()),tt.toc_then_tic());
 
     ///pad
-    int h_pad = ((int(h/8)+1)*8 - h)%8;
-    int w_pad = ((int(w/8)+1)*8 - w)%8;
+     h_pad = ((int(h/8)+1)*8 - h)%8;
+     w_pad = ((int(w/8)+1)*8 - w)%8;
 
     //前两个数pad是2维度，中间两个数pad第1维度，后两个数pad 第0维度
     input_tensor = F::pad(input_tensor, F::PadFuncOptions({w_pad, 0, h_pad, 0, 0, 0}).mode(torch::kConstant));
@@ -47,6 +47,17 @@ torch::Tensor Pipeline::process(cv::Mat &img)
     return input_tensor.unsqueeze(0).contiguous();
 }
 
+/**
+ *
+ * @param tensor shape:[c,h,w]
+ * @return
+ */
+torch::Tensor Pipeline::unpad(torch::Tensor &tensor)
+{
+    return tensor.index({"...",
+                         at::indexing::Slice(h_pad,at::indexing::None),
+                         at::indexing::Slice(w_pad,at::indexing::None)});
+}
 
 
 

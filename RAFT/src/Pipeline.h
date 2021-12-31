@@ -10,12 +10,15 @@
 
 class Pipeline {
 public:
+    using Ptr = std::shared_ptr<Pipeline>;
 
-
-    static torch::Tensor process(cv::Mat &img);
+     torch::Tensor process(cv::Mat &img);
+     torch::Tensor unpad(torch::Tensor &tensor);
 
 
 private:
+
+    int h_pad,w_pad;
 
 };
 

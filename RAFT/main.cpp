@@ -26,11 +26,14 @@ int main(int argc, char **argv) {
         return 1;
     }
     string config_file = argv[1];
+
     fmt::print("config_file:{}\n",argv[1]);
     RAFT::Ptr raft;
+    Pipeline::Ptr pipe;
     try{
         Config cfg(config_file);
         raft = std::make_unique<RAFT>();
+        pipe = std::make_shared<Pipeline>();
     }
     catch(std::runtime_error &e){
         sgLogger->critical(e.what());
@@ -58,41 +61,31 @@ int main(int argc, char **argv) {
         }
         ticToc.tic();
 
-        Tensor tensor0 = Pipeline::process(img0);//(1,3,376, 1232),值大小从-1到1
-        Tensor tensor1 = Pipeline::process(img1);//(1,3,376, 1232)
+        Tensor tensor0 = pipe->process(img0);//(1,3,376, 1232),值大小从-1到1
+        Tensor tensor1 = pipe->process(img1);//(1,3,376, 1232)
 
         debug_s("process:{} ms",ticToc.toc_then_tic());
 
         vector<Tensor> prediction = raft->forward(tensor0,tensor1);
-        //vector<Tensor> prediction = raft->forward_test();
 
-        debug_s("prediction:{} ms",ticToc.toc_then_tic());
+        double forward_time = ticToc.toc_then_tic();
+
+        debug_s("prediction:{} ms",forward_time);
 
         torch::Tensor output = (tensor1.squeeze()+1.)/2.;
         flow = prediction.back();//[1,2,h,w]
         flow = flow.squeeze();
 
-        /*string msg;
-        int cnt=0;
-        for(int i=0;i<flow.sizes()[1];++i){
-            for(int j=0;j<flow.sizes()[2];++j){
-                if(i==j){
-                    cnt++;
-                    msg+=fmt::format("({},{}:{:.2f},{:.2f})  ",i,j,
-                                     flow.index({0,i,j}).item().toFloat(),
-                                     flow.index({1,i,j}).item().toFloat());
-                    if(cnt%5==0)msg+="\n";
-                }
-            }
-        }
-        debug_s(msg);*/
+        flow = pipe->unpad(flow);
 
-
-        cv::Mat flow_show = visual_flow_image(output,flow);
-        //cv::Mat flow_show = visual_flow_image(flow);
-
-        cv::imshow("flow",flow_show);
-        if(auto order=(cv::waitKey(100) & 0xFF); order == 'q')
+        //cv::Mat flow_show = visual_flow_image(output,flow);
+        cv::Mat flow_mat = visual_flow_image(flow);
+        cv::Mat img_vis;
+        cv::vconcat(img1,flow_mat,img_vis);
+        cv::putText(img_vis, fmt::format("forward:{}ms",forward_time),{30,30},
+                    cv::FONT_HERSHEY_SIMPLEX,1, {255,0,255},2);
+        cv::imshow("flow",img_vis);
+        if(auto order=(cv::waitKey(1) & 0xFF); order == 'q')
             break;
         else if(order==' ')
             cv::waitKey(0);
