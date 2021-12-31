@@ -1,15 +1,20 @@
 # RAFT_CPP
-这是光流算法RAFT的C++实现，基于**Libtorch** + **TensorRT**。
-
+本项目是光流算法RAFT的C++实现，基于**Libtorch** + **TensorRT**，[演示视频](https://www.bilibili.com/video/BV1Hb4y1e7eS/) 。  
+This project is the C++ implementation of optical flow algorithm **RAFT**, which is based on **Libtorch + Tensorrt**.
+[Here](https://www.bilibili.com/video/BV1Hb4y1e7eS/) is the test video.
 
 ## Quick Start
 ### 0.Run RAFT  
-首先下载[RAFT](https://github.com:chenjianqu/RAFT)的源码，并运行成功。
+首先下载[RAFT](https://github.com:chenjianqu/RAFT)的源码，并运行成功。  
+Firstly download [RAFT](https://github.com:chenjianqu/RAFT),then run it sucessfully.
 
 ### 1.Export ONNX Model
-RAFT内部有3个带参数的子网络，这里分别导出。为此，这里通过对每个子网络编写forward()函数实现。
-**1.1 `export_onnx.py`加载权重：**   
-首先加载训练完成的模型权重：
+RAFT内部有3个带参数的子网络，这里分别导出。为此，这里通过对每个子网络编写forward()函数。  
+RAFT have 3 subnetwork, here export them independently. To do this, write the forward () function for each subnet
+
+**1.1 `export_onnx.py`加载权重**   
+首先加载训练完成的模型权重：  
+First, load the model weight
 ```python
 parser = argparse.ArgumentParser()
 parser.add_argument('--model',default="models/raft-kitti.pth", help="restore checkpoint")
@@ -27,7 +32,8 @@ model.eval()
 ```
 
 **1.1 导出特征提取模块**  
-首先注释原来的forward()函数，并在RAFT类里添加一个forward函数
+首先注释原来的forward()函数，并在RAFT类里添加一个forward函数  
+Annotate the original **forward()** function and add a new forward() function to the raft class
 ```python
 def forward(self, image1:torch.Tensor, image2:torch.Tensor):
     fmap1, fmap2 = self.fnet([image1, image2],True)
@@ -35,7 +41,8 @@ def forward(self, image1:torch.Tensor, image2:torch.Tensor):
     fmap2 = fmap2.float()
     return fmap1, fmap2
 ```
-在`export_onnx.py`中编写trace代码
+在`export_onnx.py`中编写trace代码  
+write trace code:
 ```python
 dummy_input1 = torch.randn(1, 3, 376, 1232,device='cuda')
 dummy_input2 = torch.randn(1, 3, 376, 1232,device='cuda')
@@ -43,6 +50,7 @@ torch.onnx.export(model,(dummy_input1,dummy_input2),"kitti_fnet.onnx",opset_vers
 ```
 **1.2 Trace Context模块**   
 首先注释原来的forward()函数，并在RAFT类里添加一个forward函数
+Annotate the original **forward()** function and add a new forward() function to the raft class
 ```python
 def forward(self, image1:torch.Tensor):
     return self.cnet([image1],False)[0]
@@ -54,6 +62,7 @@ torch.onnx.export(model,dummy_input3,"kitti_cnet.onnx",opset_version=13)
 ```
 **1.3 Trace更新模块**   
 在RAFT类里添加forward()
+Annotate the original **forward()** function and add a new forward() function to the raft class
 ```python
 def forward(self,net, inp, corr, flow):
     return self.update_block(net, inp, corr, flow)
@@ -69,7 +78,7 @@ torch.onnx.export(model,(net, inp, corr, flow),"kitti_update.onnx")
 
 
 
-### 2.下载并编译项目
+### 2.Compile and Run
 ```shell
 git clone https://github.com/chenjianqu/RAFT_CPP.git
 
