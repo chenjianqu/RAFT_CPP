@@ -1,7 +1,14 @@
+/*******************************************************
+ * Copyright (C) 2022, Chen Jianqu, Shanghai University
+ *
+ * This file is part of RAFT_CPP.
+ *
+ * Licensed under the MIT License;
+ * you may not use this file except in compliance with the License.
+ *******************************************************/
+
 #include <iostream>
 #include <memory>
-
-
 
 #include "src/Config.h"
 #include "src/utils.h"

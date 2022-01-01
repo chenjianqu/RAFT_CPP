@@ -3,6 +3,18 @@
 This project is the C++ implementation of optical flow algorithm **RAFT**, which is based on **Libtorch + Tensorrt**.
 [Here](https://www.bilibili.com/video/BV1Hb4y1e7eS/) is the test video.
 
+
+## Requirements
+* Ubuntu
+* Cuda10.2
+* cudnn8
+* GCC >=9
+* TensorRT8
+* Opencv3.4
+* Libtorch1.8.2
+* CMake3.20
+
+
 ## Quick Start
 ### 0.Run RAFT  
 首先下载[RAFT](https://github.com:chenjianqu/RAFT)的源码，并运行成功。  
