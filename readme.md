@@ -1,8 +1,8 @@
 # RAFT_CPP
 本项目是光流算法RAFT的C++实现，基于**Libtorch** + **TensorRT**，[演示视频](https://www.bilibili.com/video/BV1Hb4y1e7eS/) 。  
 This project is the C++ implementation of optical flow algorithm **RAFT**, which is based on **Libtorch + Tensorrt**.
-[Here](https://www.bilibili.com/video/BV1Hb4y1e7eS/) is the test video.
-
+[Here](https://www.bilibili.com/video/BV1Hb4y1e7eS/) is the test video.  
+![raft](https://github.com/chenjianqu/RAFT_CPP/blob/master/config/raft.png)
 
 ## Requirements
 * Ubuntu
